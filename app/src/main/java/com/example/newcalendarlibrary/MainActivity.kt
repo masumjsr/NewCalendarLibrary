@@ -1,93 +1,72 @@
 package com.example.newcalendarlibrary
 
 import android.os.Bundle
-import android.support.v4.os.IResultReceiver2.Default
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.newcalendarlibrary.navigation.Navi
-import com.example.newcalendarlibrary.ui.theme.NewCalendarLibraryTheme
-import com.kizitonwose.calendar.core.CalendarDay
-import com.kizitonwose.calendar.core.DayPosition
-import java.time.DayOfWeek
-import java.time.format.TextStyle
-import java.util.*
+import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.compose.rememberNavController
+import androidx.room.Room
+import com.example.newcalendarlibrary.events_notes.NotesViewModel
+import com.example.newcalendarlibrary.events_notes.NotesViewModelFactory
+import com.example.newcalendarlibrary.navigation.HomeNavGraph
+import com.example.newcalendarlibrary.navigation.components.BottomNav
+import com.example.newcalendarlibrary.room.AppDatabase
+import com.example.newcalendarlibrary.room.events.EventDatabase
+import com.example.newcalendarlibrary.room.notes.NotesRepository
+import com.example.newcalendarlibrary.room.user.UserRepository
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            NewCalendarLibraryTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    Navi()
+
+    private lateinit var notesViewModel: NotesViewModel
+
+
+    private val db by lazy {
+        Room.databaseBuilder(applicationContext, EventDatabase::class.java, "appointment.db")
+            .build()
+    }
+    private val viewModel by viewModels<EventViewModel>(
+        factoryProducer = {
+            object : ViewModelProvider.Factory {
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    return EventViewModel(db.eventDao) as T
                 }
             }
         }
-    }
-}
-@Composable
-fun MonthHeader(daysOfWeek: List<DayOfWeek>) {
+    )
 
-}
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
+        val notesRepository = NotesRepository(context = applicationContext)
+        val userRepository = UserRepository(context = applicationContext)
 
+        AppDatabase.AppDb.getInstance(this).noteDao()
+        val notesViewModelFactory = NotesViewModelFactory(notesRepository, userRepository)
 
-@Composable
-fun Day(day: CalendarDay, isSelected: Boolean, onClick: (CalendarDay) -> Unit) {
-    Box(
-        modifier = Modifier
-            .aspectRatio(0.5f)
-            .clip(CircleShape)
-            .background(color = if (isSelected) Color.LightGray else Color.Transparent)
-            .padding(horizontal = 10.dp)
-            .padding(vertical = 10.dp)
-            .width(300.dp)
-            .clickable(
-                enabled = day.position == DayPosition.MonthDate,
-                onClick = { onClick(day)}
-            ),// This is important for square sizing!
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = day.date.dayOfMonth.toString(),
-        color = if(day.position == DayPosition.MonthDate) Color.White else Color.DarkGray)
-         }
-}
+        notesViewModel = ViewModelProvider(this, notesViewModelFactory)[NotesViewModel::class.java]
 
 
-@Composable
-fun DaysOfWeekTitle(daysOfWeek: List<DayOfWeek>) {
-    Row(modifier = Modifier.fillMaxWidth()) {
-        for (dayOfWeek in daysOfWeek) {
-            Text(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(vertical = 70.dp)
-                    .padding(horizontal = 1.dp),
-                    //.padding(top = 1.dp),
+        setContent {
 
-
-                textAlign = TextAlign.Center,
-                text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+            val state by viewModel.state.collectAsState()
+            BottomNav(
+                onEvent = viewModel::onEvent,
+                eventDao = db.eventDao,
+                state = state,
+                notesViewModel = notesViewModel,
+                navController =  rememberNavController()
             )
+            //LoginScreen(notesViewModel = notesViewModel)
+
         }
     }
+
 }
+
 

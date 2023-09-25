@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">NewCalendarLibrary</string>
+    <string name="edit_item_title">Edit Item</string>
 </resources>
