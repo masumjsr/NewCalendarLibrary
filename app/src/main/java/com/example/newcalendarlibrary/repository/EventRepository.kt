@@ -45,6 +45,7 @@ class EventRepository @Inject constructor(private val eventDao: EventDao,val pre
 
 
     fun getEvent()=eventDao.getEvent(user=preference.getUser())
+    fun getEvent(id:Int)=eventDao.getEvent(id)
 
 
 

@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.newcalendarlibrary.repository.EventRepository
@@ -24,9 +25,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class  AddEventViewModel @Inject constructor (
-    val eventRepository: EventRepository,
-    val preference: MyPreference
+    private val eventRepository: EventRepository,
+    preference: MyPreference,
+    savedStateHandle: SavedStateHandle
 ):ViewModel(){
+
+    val id=savedStateHandle.get<Int>("id")?:0
     val user=preference.getUser()
     fun storeEvent(event: Event){
         viewModelScope.launch {
@@ -34,6 +38,10 @@ class  AddEventViewModel @Inject constructor (
         }
     }
 
+    init {
+
+        Log.i("123321", "id:$id ")
+    }
     val staring = MutableStateFlow(startDate().time)
     val ending = MutableStateFlow(endDate().time)
     var color = MutableStateFlow(0)
@@ -83,7 +91,16 @@ class  AddEventViewModel @Inject constructor (
     initialValue = emptyList()
     )
 
+    var singleEvent=eventRepository.getEvent(id)
+
+        .stateIn(
+    scope = viewModelScope,
+    started = SharingStarted.WhileSubscribed(5_000),
+    initialValue = Event(0,"","",0L,0L,0,"")
+    )
+
     fun  deleteEvent(event: Event){
+
         colorEvent
         viewModelScope.launch {
             eventRepository.removeEvent(event)

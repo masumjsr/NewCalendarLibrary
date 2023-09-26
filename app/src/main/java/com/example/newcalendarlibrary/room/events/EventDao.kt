@@ -6,11 +6,12 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 @Dao
 interface EventDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Upsert
     suspend fun insertEvent(event: Event)
     @Update
     suspend fun updateEvent(event: Event)
@@ -28,6 +29,10 @@ interface EventDao {
 
   @Query("SELECT * FROM event where user=:user")
     fun getEvent(user: String): Flow<List<Event>>
+
+
+ @Query("SELECT * FROM event where id=:id")
+    fun getEvent(id:Int): Flow<Event>
 
 
     @Query("SELECT * FROM event where startTime between :startTime and:endTime and user=:user")

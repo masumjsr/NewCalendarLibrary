@@ -1,10 +1,6 @@
 package com.example.newcalendarlibrary.events_notes
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.util.Log
-import android.widget.DatePicker
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,11 +11,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
@@ -43,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -53,16 +46,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.newcalendarlibrary.AppointmentEvent
-import com.example.newcalendarlibrary.EventViewModel
-import com.example.newcalendarlibrary.color_picker.ColorViewModel
 import com.example.newcalendarlibrary.color_picker.ColourButton
 import com.example.newcalendarlibrary.color_picker.colors
 import com.example.newcalendarlibrary.create_notes.AppointmentState
 import com.example.newcalendarlibrary.room.events.Event
 import com.example.newcalendarlibrary.ui.viewmodel.AddEventViewModel
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -86,11 +74,12 @@ fun AddEventScreen(
     ) {
     Surface(modifier = modifier.fillMaxSize()) {
 
-        val cal=Calendar.getInstance()
+        val startCalender=Calendar.getInstance()
+        val endCalender=Calendar.getInstance()
 
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
-        val timePickerState = rememberTimePickerState(cal.get(Calendar.HOUR_OF_DAY),cal.get(Calendar.MINUTE))
-        val endTimePickerState = rememberTimePickerState()
+        val timePickerState = rememberTimePickerState(startCalender.get(Calendar.HOUR_OF_DAY),startCalender.get(Calendar.MINUTE))
+        val endTimePickerState = rememberTimePickerState(endCalender.get(Calendar.HOUR_OF_DAY),endCalender.get(Calendar.MINUTE))
         val endDatePickerState = rememberDatePickerState(initialSelectedDateMillis = System.currentTimeMillis())
 
 
@@ -118,10 +107,10 @@ fun AddEventScreen(
         }
 
         var selectedTime by remember {
-            mutableLongStateOf(cal.timeInMillis)
+            mutableLongStateOf(startCalender.timeInMillis)
         }
         var selectedEndTime by remember {
-            mutableLongStateOf(cal.timeInMillis)
+            mutableLongStateOf(startCalender.timeInMillis)
         }
       DatePicker(showDatePicker, datePickerState){
             showDatePicker=false
@@ -136,16 +125,16 @@ fun AddEventScreen(
         }
 
         CustomTimePicker(showDatePicker = showTimePicker, datePickerState =timePickerState ) {
-            cal.set(Calendar.HOUR_OF_DAY,timePickerState.hour)
-            cal.set(Calendar.MINUTE,timePickerState.minute)
-            selectedTime=cal.timeInMillis
+            startCalender.set(Calendar.HOUR_OF_DAY,timePickerState.hour)
+            startCalender.set(Calendar.MINUTE,timePickerState.minute)
+            selectedTime=startCalender.timeInMillis
             showTimePicker=false
 
         }
         CustomTimePicker(showDatePicker = showEndTimePicker, datePickerState =endTimePickerState ) {
-            cal.set(Calendar.HOUR_OF_DAY,timePickerState.hour)
-            cal.set(Calendar.MINUTE,timePickerState.minute)
-            selectedEndTime=cal.timeInMillis
+            endCalender.set(Calendar.HOUR_OF_DAY,endTimePickerState.hour)
+            endCalender.set(Calendar.MINUTE,endTimePickerState.minute)
+            selectedEndTime=endCalender.timeInMillis
             showEndTimePicker=false
 
 
@@ -153,54 +142,8 @@ fun AddEventScreen(
 
 
 
-//        var title by remember { mutableStateOf("") }
-//        val description = remember { mutableStateOf("") }
 
-        val currentDayCal = Clock.System.todayIn(TimeZone.currentSystemDefault())
-        val context = LocalContext.current
 
-        // Declaring integer values
-        // for year, month and day
-        val mYear: Int
-        val mMonth: Int
-        val mDay: Int
-
-        // Initializing a Calendar
-        val mCalendar = Calendar.getInstance()
-
-        // Fetching current year, month and day
-        mYear = mCalendar.get(Calendar.YEAR)
-        mMonth = mCalendar.get(Calendar.MONTH)
-        mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
-
-        mCalendar.time = Date()
-
-        // Declaring a string value to
-        // store date in string format
-        var mDate = remember { mutableStateOf("") }
-
-        // Declaring DatePickerDialog and setting
-        // initial values as current values (present year, month and day)
-        val mDatePickerDialog = DatePickerDialog(
-            context,
-            { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-                mDate.value = "$mDayOfMonth/${mMonth + 1}/$mYear"
-            }, mYear, mMonth, mDay
-        )
-
-        val mHour = mCalendar[Calendar.HOUR_OF_DAY]
-        val mMinute = mCalendar[Calendar.MINUTE]
-
-        // Value for storing time as a string
-        val mTime = remember { mutableStateOf("") }
-
-        // Creating a TimePicker dialod
-        val mTimePickerDialog = TimePickerDialog(
-            context,
-            { _, mHour: Int, mMinute: Int ->
-                mTime.value = "$mHour:$mMinute"
-            }, mHour, mMinute, false
-        )
 
         var title by remember {
             mutableStateOf("")
@@ -339,7 +282,7 @@ fun AddEventScreen(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun DatePicker(
+ fun DatePicker(
     showDatePicker: Boolean,
     datePickerState: DatePickerState,
     onDismiss:()->Unit
@@ -383,12 +326,12 @@ private fun DatePicker(
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun CustomTimePicker(
+ fun CustomTimePicker(
     showDatePicker: Boolean,
     datePickerState: TimePickerState,
     onDismiss:()->Unit
 ) {
-    var showDatePicker1 = showDatePicker
+    val showDatePicker1 = showDatePicker
     if (showDatePicker1) {
         AlertDialog(
             modifier = Modifier

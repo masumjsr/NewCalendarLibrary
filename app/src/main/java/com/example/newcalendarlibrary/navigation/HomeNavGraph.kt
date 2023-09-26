@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -23,6 +24,7 @@ import com.example.newcalendarlibrary.navigation.components.BottomBarScreen
 import com.example.newcalendarlibrary.register.LoginPage
 import com.example.newcalendarlibrary.register.RegisterPage
 import com.example.newcalendarlibrary.room.events.EventDao
+import com.example.newcalendarlibrary.ui.viewmodel.AddEventViewModel
 
 /**
  * This NavGraph is the real deal "🤯"
@@ -34,7 +36,7 @@ fun HomeNavGraph(
     eventDao: EventDao,
     notesViewModel: NotesViewModel,
     navController: NavHostController,
-    navigateToItemUpdate: (Int) -> Unit
+    navigateToItemUpdate: (Int) -> Unit,
 ) {
 
     var selectedColor by remember { mutableStateOf(colors[0]) }
@@ -89,7 +91,6 @@ fun HomeNavGraph(
                 onEvent = onEvent,
                 state = state,
                 navController = navController,
-                eventDao = eventDao
             )
         }
 
